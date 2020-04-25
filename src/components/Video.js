@@ -17,9 +17,10 @@ const Video = ({ token }) => {
         const addNewParticipant = participant => {
           console.log('new participant joined',participant.identity);
           participant.tracks.forEach(publication => {
+            //if subscribed, add track
             if (publication.isSubscribed) {
               const track = publication.track;
-
+              //append remote video to DOM
               remoteVidRef.current.appendChild(track.attach());
               console.log('added remote video');
             }

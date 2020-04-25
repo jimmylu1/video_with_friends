@@ -1,41 +1,40 @@
-import React, { useEffect, useRef } from 'react';
-import twilioVideo from "twilio-video";
+import React, { useEffect, useRef } from "react";
+import TwilioVideo from "twilio-video";
 
 const Video = ({ token }) => {
   const localVidRef = useRef();
   const remoteVidRef = useRef();
+
   useEffect(() => {
-    twilioVideo
-      .connect(token, { video: true, audio: true })
-      .then(room => {
-        //attach local video
-        twilioVideo.createLocalVideoTrack().then(track => {
+    TwilioVideo.connect(token, { video: true, audio: true, name: "test" }).then(
+      room => {
+        //attach local video track
+        TwilioVideo.createLocalVideoTrack().then(track => {
           localVidRef.current.appendChild(track.attach());
         });
-        console.log("successfully joined room");
-        console.log(room);
-        //helper to add new participant
-        
-        const addParticipant = participant => {
-          console.log("participant connected", participant.identity);
+
+        //helper to add new remote participants
+        const addNewParticipant = participant => {
+          console.log('new participant joined',participant.identity);
           participant.tracks.forEach(publication => {
             if (publication.isSubscribed) {
               const track = publication.track;
+
               remoteVidRef.current.appendChild(track.attach());
-              console.log("attached remote vid ref");
+              console.log('added remote video');
             }
           });
+
           participant.on("trackSubscribed", track => {
-            console.log("track subscribed");
+            console.log("track subscribed and remote video added");
             remoteVidRef.current.appendChild(track.attach());
           });
         };
-
-        //add new participant
-        room.on("participantConnected", addParticipant);
-        //for each participant, add new video and audio
-        room.participants.forEach(addParticipant);
-      });
+        //for each participant, apply helper to add video
+        room.participants.forEach(addNewParticipant);
+        room.on("participantConnected", addNewParticipant);
+      }
+    );
   }, [token]);
 
   return (
@@ -46,4 +45,4 @@ const Video = ({ token }) => {
   );
 };
 
-export default Video
+export default Video;
